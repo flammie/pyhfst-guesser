@@ -34,7 +34,7 @@ if ! test -d models/$TYPO ; then
     mkdir -v models/$TYPO
 fi
 dos2unix $INFILE # SERIOUSLY?=!"#@
-awk -f unimorph2hfst.awk < $INFILE > $OUTFILE.strings
+python3 unimorph2hfst.py -i $INFILE -o $OUTFILE.strings -v
 hfst-strings2fst -j -i $OUTFILE.strings -v |\
     hfst-minimize -o $OUTFILE.hfst -v
 hfst-invert -v -i $OUTFILE.hfst |\

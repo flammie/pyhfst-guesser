@@ -33,8 +33,17 @@ fi
 if ! test -d models/$TYPO ; then
     mkdir -v models/$TYPO
 fi
+dos2unix $INFILE # SERIOUSLY?=!"#@
 awk -f unimorph2hfst.awk < $INFILE > $OUTFILE.strings
-hfst-strings2fst -j -i $OUTFILE.strings -o $OUTFILE.hfst -v
-hfst-minimize -i $OUTFILE.hfst -v |\
-    hfst-fst2fst -f olw -o ${OUTFILE}.hfstol
-
+hfst-strings2fst -j -i $OUTFILE.strings -v |\
+    hfst-minimize -o $OUTFILE.hfst -v
+hfst-invert -v -i $OUTFILE.hfst |\
+    hfst-minimize -v -o $OUTFILE.inv.hfst
+hfst-fst2fst -f olw -v -i $OUTFILE.hfst -o ${OUTFILE}.hfstol
+hfst-fst2fst -f olw -v -i $OUTFILE.inv.hfst -o ${OUTFILE}.inv.hfstol
+python3 pyhguessify.py -v -i $OUTFILE.hfst -o $OUTFILE+prefix.hfst --suffix
+# hfst-minimize -v -i $OUTFILE+prefix.hfst |
+hfst-fst2fst -f olw -v -i $OUTFILE+prefix.hfst -o $OUTFILE+prefix.hfstol
+hfst-invert -v -i $OUTFILE+prefix.hfst -o  $OUTFILE+prefix.inv.hfst
+#    hfst-minimize -v -o $OUTFILE+prefix.inv.hfst
+hfst-fst2fst -f olw -i $OUTFILE+prefix.inv.hfst -o $OUTFILE+prefix.inv.hfstol

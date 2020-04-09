@@ -42,8 +42,7 @@ hfst-invert -v -i $OUTFILE.hfst |\
 hfst-fst2fst -f olw -v -i $OUTFILE.hfst -o ${OUTFILE}.hfstol
 hfst-fst2fst -f olw -v -i $OUTFILE.inv.hfst -o ${OUTFILE}.inv.hfstol
 python3 pyhguessify.py -v -i $OUTFILE.hfst -o $OUTFILE+prefix.hfst --suffix
-# hfst-minimize -v -i $OUTFILE+prefix.hfst |
-hfst-fst2fst -f olw -v -i $OUTFILE+prefix.hfst -o $OUTFILE+prefix.hfstol
-hfst-invert -v -i $OUTFILE+prefix.hfst -o  $OUTFILE+prefix.inv.hfst
-#    hfst-minimize -v -o $OUTFILE+prefix.inv.hfst
+hfst-reverse -v -i $OUTFILE+prefix.hfst | hfst-minimize -v | hfst-reverse -o $OUTFILE+prefix.min.hfst
+hfst-fst2fst -f olw -v -i $OUTFILE+prefix.min.hfst -o $OUTFILE+prefix.hfstol
+hfst-invert -v -i $OUTFILE+prefix.min.hfst -o  $OUTFILE+prefix.inv.hfst
 hfst-fst2fst -f olw -i $OUTFILE+prefix.inv.hfst -o $OUTFILE+prefix.inv.hfstol

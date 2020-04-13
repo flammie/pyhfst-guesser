@@ -1,5 +1,5 @@
 #!/bin/bash
-
+CLOBBER=false
 if test $# -lt 2 -o $# -gt 3; then
     echo "Usage: $0 TYPO LANGCODE [train|dev|test]"
     echo
@@ -34,15 +34,30 @@ if ! test -d models/$TYPO ; then
     mkdir -v models/$TYPO
 fi
 dos2unix $INFILE # SERIOUSLY?=!"#@
-python3 unimorph2hfst.py -i $INFILE -o $OUTFILE.strings -v
-hfst-strings2fst -j -i $OUTFILE.strings -v |\
-    hfst-minimize -o $OUTFILE.hfst -v
-hfst-invert -v -i $OUTFILE.hfst |\
-    hfst-minimize -v -o $OUTFILE.inv.hfst
-hfst-fst2fst -f olw -v -i $OUTFILE.hfst -o ${OUTFILE}.hfstol
-hfst-fst2fst -f olw -v -i $OUTFILE.inv.hfst -o ${OUTFILE}.inv.hfstol
-python3 pyhguessify.py -v -i $OUTFILE.hfst -o $OUTFILE+prefix.hfst --suffix
-hfst-reverse -v -i $OUTFILE+prefix.hfst | hfst-minimize -v | hfst-reverse -o $OUTFILE+prefix.min.hfst
-hfst-fst2fst -f olw -v -i $OUTFILE+prefix.min.hfst -o $OUTFILE+prefix.hfstol
-hfst-invert -v -i $OUTFILE+prefix.min.hfst -o  $OUTFILE+prefix.inv.hfst
-hfst-fst2fst -f olw -i $OUTFILE+prefix.inv.hfst -o $OUTFILE+prefix.inv.hfstol
+if test -f $OUTFILE.strings && ! $CLOBBER  ; then
+    echo $OUTFILE.strings exists, rm or set CLOBBER to remake
+    exit 0
+else
+    python3 unimorph2hfst.py -i $INFILE -o $OUTFILE.strings -v
+fi
+if test -f $OUTFILE.hfst && ! $CLOBBER  ; then
+    echo $OUTFILE.hfst exists, rm or set CLOBBER to remake
+    exit 0
+else
+    hfst-strings2fst -j -i $OUTFILE.strings -v |\
+        hfst-minimize -o $OUTFILE.hfst -v
+    hfst-invert -v -i $OUTFILE.hfst |\
+        hfst-minimize -v -o $OUTFILE.inv.hfst
+    hfst-fst2fst -f olw -v -i $OUTFILE.hfst -o ${OUTFILE}.hfstol
+    hfst-fst2fst -f olw -v -i $OUTFILE.inv.hfst -o ${OUTFILE}.inv.hfstol
+fi
+if test -f $OUTFILE+prefix.hfst && ! $CLOBBER  ; then
+    echo $OUTFILE+prefix.hfst exists, rm or set CLOBBER to remake
+    exit 0
+else
+    python3 pyhguessify.py -v -i $OUTFILE.hfst -o $OUTFILE+prefix.hfst --suffix
+    hfst-reverse -v -i $OUTFILE+prefix.hfst | hfst-minimize -v | hfst-reverse -o $OUTFILE+prefix.min.hfst
+    hfst-fst2fst -f olw -v -i $OUTFILE+prefix.min.hfst -o $OUTFILE+prefix.hfstol
+    hfst-invert -v -i $OUTFILE+prefix.min.hfst -o  $OUTFILE+prefix.inv.hfst
+    hfst-fst2fst -f olw -i $OUTFILE+prefix.inv.hfst -o $OUTFILE+prefix.inv.hfstol
+fi

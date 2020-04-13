@@ -1,3 +1,7 @@
+models
+hyps
+task0-data
+task0-baselines
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

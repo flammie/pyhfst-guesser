@@ -19,6 +19,7 @@ import libhfst
 PENALTY_ = 28021984
 
 
+
 def load_analyser(filename: str):
     """Load an automaton from file.
 
@@ -102,6 +103,23 @@ def make_guesser(fsa: hfst.HfstTransducer, prefix: bool, suffix: bool,
                                           arc.get_output_symbol(),
                                           arc.get_weight())
         guesser = prefixloop
+    if prefix:
+        suffixloop = hfst.HfstBasicTransducer(fsa)
+        suffixloopstate = suffixloop.add_state()
+        suffixloop.set_final_weight(suffixloopstate, 0)
+        suffixloop.add_transition(suffixloopstate, suffixloopstate,
+                               "@_IDENTITY_SYMBOL_@", "@_IDENTITY_SYMBOL_@",
+                               PENALTY_)
+        for symbol, weight in sigmaw.items():
+            suffixloop.add_transition(suffixloopstate, suffixloopstate,
+                                      symbol, symbol, weight)
+        if verbose:
+            print("connecting...", end=" ")
+        for state, arcs in enumerate(suffixloop):
+            suffixloop.add_transition(state, suffixloopstate,
+                                   "@_EPSILON_SYMBOL_@", "@_EPSILON_SYMBOL_@",
+                                   0)
+        guesser = suffixloop
     if verbose:
         print("Converting...", end=" ")
     fsa = hfst.HfstTransducer(guesser)

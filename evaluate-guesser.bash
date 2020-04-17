@@ -40,9 +40,25 @@ if ! test -f $OUTFILE.x || $CLOBBER ; then
 else
     echo $OUTFILE.x exists, rm or set CLOBBER to remake
 fi
-cut -f 1,2 < $OUTFILE.x |\
+case $GUESSER in
+    *suffix*) cut -f  1,2 < $OUTFILE.x |\
+    tr -s '\n' |\
+    rev |\
+    sed -e 's/;/\t/' |\
+    rev |\
+    awk -F "\t" --assign=OFS="\t" 'NF==2 {$3=$2;$2="X"} {s=$1; $1=$3; $3=$2;
+        $2=s; print;}' |\
+    sed -e 's/^	\([^	]*\)/\1	\1/' > $OUTFILE;;
+
+    *prefix*) cut -f 1,2 < $OUTFILE.x |\
     tr -s '\n' |\
     sed -e 's/;/\t/' -e 's/+?/\t;N/' |\
     awk -F "\t" --assign=OFS="\t" 'NF==2 {$3="X";} {s=$1; $1=$2; $2=s; print;}' |\
-    sed -e 's/^	\([^	]*\)/\1	\1/' > $OUTFILE
+    sed -e 's/^	\([^	]*\)/\1	\1/' > $OUTFILE;;
+    *) cut -f 1,2 < $OUTFILE.x |\
+    tr -s '\n' |\
+    sed -e 's/;/\t/' -e 's/+?/\t;N/' |\
+    awk -F "\t" --assign=OFS="\t" 'NF==2 {$3="X";} {s=$1; $1=$2; $2=s; print;}' |\
+    sed -e 's/^	\([^	]*\)/\1	\1/' > $OUTFILE;;
+esac
 python3 task0-data/evaluate.py --hyp $OUTFILE --ref $INFILE | tee $OUTFILE.evals

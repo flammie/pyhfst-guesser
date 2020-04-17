@@ -53,6 +53,8 @@ def main():
                       dest="outfile", help="write strings to OUTFILE")
     argp.add_argument('-a', '--alignment', metavar="ALGO", default="hamming",
                       help="use ALGO to align")
+    argp.add_argument('-p', '--prefixing', default=False, action="store_true",
+                      help="prepare for prefix guesser (tags before bros)")
     options = argp.parse_args()
     if options.verbose:
         if options.infile:
@@ -79,12 +81,24 @@ def main():
         surf = fields[1]
         msd = fields[2]
         padlemma, padsurf = halign(lemma, surf)
+        if not padsurf:
+            padsurf = surf
+        # pad over msd...
         if len(padlemma) < len(padsurf):
-            padlemma += '_' * (len(padsurf) - len(padlemma))
+            if options.prefixing:
+                padsurf = ('_' * (msd.count(";") + len(padsurf) - len(padlemma) + 1)) + padsurf
+            else:
+                padlemma += '_' * (len(padsurf) - len(padlemma))
+        else:
+            if options.prefixing:
+                padsurf = ('_' * (msd.count(";") + 1)) + padsurf
         for needle, repl in [('_', '@0@'), (':', '\\:')]:
             padlemma = padlemma.replace(needle, repl)
             padsurf = padsurf.replace(needle, repl)
-        print(padlemma, ";", msd, ':', surf, sep='', file=outf)
+        if options.prefixing:
+            print(msd, ";", padlemma, ':', padsurf, sep='', file=outf)
+        else:
+            print(padlemma, ";", msd, ':', padsurf, sep='', file=outf)
         lines += 1
         if lines % 1000 == 0 and options.verbose:
             print(lines, "...")

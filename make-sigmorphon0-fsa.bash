@@ -64,9 +64,24 @@ else
     hfst-fst2fst -f olw -v -i $OUTFILE+prefix.min.hfst -o $OUTFILE+prefix.hfstol
     hfst-invert -v -i $OUTFILE+prefix.min.hfst -o  $OUTFILE+prefix.inv.hfst
     hfst-fst2fst -f olw -i $OUTFILE+prefix.inv.hfst -o $OUTFILE+prefix.inv.hfstol
+fi
+if test -f $OUTFILE+suffix.hfst && ! $CLOBBER  ; then
+    echo $OUTFILE+suffix.hfst exists, rm or set CLOBBER to remake
+else
     python3 pyhguessify.py -v -i $OUTFILE.pfx.hfst -o $OUTFILE+suffix.hfst --prefix
     hfst-minimize -v -i $OUTFILE+suffix.hfst -o $OUTFILE+suffix.min.hfst
     hfst-fst2fst -f olw -v -i $OUTFILE+suffix.min.hfst -o $OUTFILE+suffix.hfstol
     hfst-invert -v -i $OUTFILE+suffix.min.hfst -o  $OUTFILE+suffix.inv.hfst
     hfst-fst2fst -f olw -i $OUTFILE+suffix.inv.hfst -o $OUTFILE+suffix.inv.hfstol
+fi
+if test -f $OUTFILE+umfix.hfst && ! $CLOBBER  ; then
+    echo $OUTFILE+umfix.hfst exists, rm or set CLOBBER to remake
+else
+    python3 pyhguessify.py -v -i $OUTFILE.hfst -o $OUTFILE+umfix.hfst \
+        --substring
+    hfst-reverse -v -i $OUTFILE+umfix.hfst | hfst-minimize -v |\
+        hfst-reverse -v -o $OUTFILE+umfix.min.hfst
+    hfst-fst2fst -f olw -v -i $OUTFILE+umfix.min.hfst -o $OUTFILE+umfix.hfstol
+    hfst-invert -v -i $OUTFILE+umfix.min.hfst -o  $OUTFILE+umfix.inv.hfst
+    hfst-fst2fst -f olw -i $OUTFILE+umfix.inv.hfst -o $OUTFILE+umfix.inv.hfstol
 fi
